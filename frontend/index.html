@@ -34,6 +34,18 @@ font-size:20px;
 
 <div class="container">
 <h1>Conectar WhatsApp</h1>
+<hr>
+
+<h2>Clientes</h2>
+<h3>Crear Cliente</h3>
+
+<input id="nombreCliente" placeholder="Nombre">
+<input id="telefonoCliente" placeholder="Teléfono">
+
+<button onclick="crearCliente()">Crear cliente</button>
+<button onclick="cargarClientes()">Ver clientes</button>
+
+<ul id="listaClientes"></ul>
 
 <div class="status" id="status">Cargando...</div>
 
@@ -64,6 +76,62 @@ setInterval(loadQR, 3000);
 loadQR();
 
 </script>
+<script>
 
+async function cargarClientes(){
+  try{
+    const res = await fetch("http://72.60.12.34:3000/clientes");
+    const data = await res.json();
+
+    const lista = document.getElementById("listaClientes");
+    lista.innerHTML = "";
+
+    data.forEach(c => {
+      const li = document.createElement("li");
+      li.innerText = c.nombre + " - " + c.telefono;
+      lista.appendChild(li);
+    });
+
+  }catch(e){
+    console.log(e);
+  }
+}
+
+</script>
+<script>
+
+async function crearCliente(){
+  const nombre = document.getElementById("nombreCliente").value;
+  const telefono = document.getElementById("telefonoCliente").value;
+
+  if(!nombre || !telefono){
+    alert("Completar datos");
+    return;
+  }
+
+  try{
+    const res = await fetch("http://72.60.12.34:3000/clientes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        nombre,
+        telefono
+      })
+    });
+
+    const data = await res.json();
+
+    alert(data.status || data.error);
+
+    cargarClientes();
+
+  }catch(e){
+    console.log(e);
+  }
+}
+
+</script>
 </body>
 </html>
