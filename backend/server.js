@@ -17,13 +17,22 @@ app.get("/", (req, res) => {
 });
 
 // QR
-app.get("/qr", (req, res) => {
+app.get("/qr/:id", (req, res) => {
+  const id = req.params.id;
+
+  const { createClient, getClient } = require("./whatsapp/client");
+
+  let instancia = getClient(id);
+
+  if (!instancia) {
+    instancia = createClient(id);
+  }
+
   res.json({
-    status: getStatus(),
-    qr: getQR()
+    status: instancia.getStatus(),
+    qr: instancia.getQR()
   });
 });
-
 // CREAR CLIENTE
 app.post("/clientes", (req, res) => {
   const { nombre, telefono } = req.body;

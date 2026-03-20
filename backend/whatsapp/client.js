@@ -1,41 +1,64 @@
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode");
 
-let currentQR = null;
-let clientStatus = "disconnected";
+const clients = {};
 
-const client = new Client({
-  authStrategy: new LocalAuth({
-    dataPath: "/opt/solutecno-saas/sessions"
-  }),
-  puppeteer: {
-    headless: true,
-    executablePath: "/usr/bin/chromium-browser",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+function createClient(instanceId) {
+
+  if (clients[instanceId]) {
+    return clients[instanceId];
   }
-});
 
-client.on("qr", async (qr) => {
-  console.log("Nuevo QR generado");
+  console.log("Creando cliente nuevo:", instanceId);
 
-  currentQR = await qrcode.toDataURL(qr);
-  clientStatus = "qr";
-});
+  let currentQR = null;
+  let status = "disconnected";
 
-client.on("ready", () => {
-  console.log("WhatsApp conectado");
-  clientStatus = "connected";
-  currentQR = null;
-});
+  const client = new Client({
+    authStrategy: new LocalAuth({
+      clientId: "client-" + instanceId,
+      dataPath: "/opt/solutecno-saas/sessions"
+    }),
+    puppeteer: {
+      headless: true,
+      executablePath: "/usr/bin/chromium-browser",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    }
+  });
 
-client.on("disconnected", () => {
-  console.log("WhatsApp desconectado");
-  clientStatus = "disconnected";
-});
+  client.on("qr", async (qr) => {
+    console.log("QR generado para instancia", instanceId);
+    currentQR = await qrcode.toDataURL(qr);
+    status = "qr";
+  });
 
-client.initialize();
+  client.on("ready", () => {
+    console.log("WhatsApp conectado instancia", instanceId);
+    status = "connected";
+    currentQR = null;
+  });
+
+  client.on("disconnected", () => {
+    console.log("WhatsApp desconectado instancia", instanceId);
+    status = "disconnected";
+  });
+
+  client.initialize();
+
+  clients[instanceId] = {
+    client,
+    getQR: () => currentQR,
+    getStatus: () => status
+  };
+
+  return clients[instanceId];
+}
+
+function getClient(instanceId) {
+  return clients[instanceId];
+}
 
 module.exports = {
-  getQR: () => currentQR,
-  getStatus: () => clientStatus
+  createClient,
+  getClient
 };
