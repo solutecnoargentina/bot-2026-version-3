@@ -20,12 +20,18 @@ input,button,select{
 hr{
   margin:40px 0;
 }
+
+.card{
+  margin:10px;
+  padding:10px;
+  border:1px solid #444;
+}
 </style>
 
 </head>
 <body>
 
-<h1>Conectar WhatsApp</h1>
+<h1>Solutecno SaaS</h1>
 
 <hr>
 
@@ -33,23 +39,31 @@ hr{
 
 <input id="nombre" placeholder="Nombre">
 <input id="telefono" placeholder="Teléfono">
-<button>Crear cliente</button>
+<button onclick="crearCliente()">Crear cliente</button>
 
-<h3>Lista de Clientes</h3>
-<button>Ver clientes</button>
+<br>
+
+<button onclick="verClientes()">Ver clientes</button>
+
+<div id="clientes"></div>
 
 <hr>
 
 <h2>Instancias</h2>
 
 <input id="clienteId" placeholder="ID Cliente">
-<select>
-<option>Demo</option>
+<select id="tipo">
+<option value="demo">Demo</option>
+<option value="pago">Pago</option>
 </select>
-<button>Crear instancia</button>
 
-<h3>Lista de Instancias</h3>
-<button>Ver instancias</button>
+<button onclick="crearInstancia()">Crear instancia</button>
+
+<br>
+
+<button onclick="verInstancias()">Ver instancias</button>
+
+<div id="instancias"></div>
 
 <hr>
 
@@ -61,6 +75,63 @@ hr{
 <div id="qrContainer" style="margin-top:20px;"></div>
 
 <script>
+
+const API = "http://72.60.12.34:3000";
+
+async function crearCliente(){
+  const nombre = document.getElementById("nombre").value;
+  const telefono = document.getElementById("telefono").value;
+
+  await fetch(API + "/clientes", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ nombre, telefono })
+  });
+
+  alert("Cliente creado");
+}
+
+async function verClientes(){
+  const res = await fetch(API + "/clientes");
+  const data = await res.json();
+
+  const container = document.getElementById("clientes");
+  container.innerHTML = "";
+
+  data.forEach(c => {
+    container.innerHTML += `<div class="card">${c.id} - ${c.nombre} - ${c.telefono}</div>`;
+  });
+}
+
+async function crearInstancia(){
+  const clienteId = document.getElementById("clienteId").value;
+  const tipo = document.getElementById("tipo").value;
+
+  await fetch(API + "/instancias", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ clienteId, tipo })
+  });
+
+  alert("Instancia creada");
+}
+
+async function verInstancias(){
+  const res = await fetch(API + "/instancias");
+  const data = await res.json();
+
+  const container = document.getElementById("instancias");
+  container.innerHTML = "";
+
+  data.forEach(i => {
+    container.innerHTML += `
+      <div class="card">
+        ID: ${i.id} | Cliente: ${i.clienteId} | Tipo: ${i.tipo} | Estado: ${i.estado}
+      </div>
+    `;
+  });
+}
+
 async function conectarWhatsApp() {
   const id = document.getElementById("instanciaId").value;
 
@@ -68,7 +139,7 @@ async function conectarWhatsApp() {
   container.innerHTML = "Cargando QR...";
 
   try {
-    const res = await fetch("http://72.60.12.34:3000/qr/" + id);
+    const res = await fetch(API + "/qr/" + id);
     const data = await res.json();
 
     if (!data.qr) {
@@ -89,6 +160,7 @@ async function conectarWhatsApp() {
     container.innerHTML = "Error cargando QR";
   }
 }
+
 </script>
 
 </body>
