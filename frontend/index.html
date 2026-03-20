@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Solutecno SaaS</title>
+
+<style>
+body{
+font-family:Arial;
+text-align:center;
+background:#0f172a;
+color:white;
+}
+
+.container{
+margin-top:50px;
+}
+
+img{
+margin-top:20px;
+background:white;
+padding:10px;
+border-radius:10px;
+}
+
+.status{
+margin-top:20px;
+font-size:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Conectar WhatsApp</h1>
+
+<div class="status" id="status">Cargando...</div>
+
+<img id="qr" width="250"/>
+
+</div>
+
+<script>
+
+async function loadQR(){
+  try{
+    const res = await fetch("http://72.60.12.34:3000/qr");
+    const data = await res.json();
+
+    document.getElementById("status").innerText = data.status;
+
+    if(data.qr){
+      document.getElementById("qr").src = data.qr;
+    }
+
+  }catch(e){
+    console.log("Error:", e);
+  }
+}
+
+// actualizar cada 3 segundos
+setInterval(loadQR, 3000);
+loadQR();
+
+</script>
+
+</body>
+</html>
