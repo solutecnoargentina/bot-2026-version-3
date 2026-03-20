@@ -19,7 +19,30 @@ app.get("/", (req, res) => {
 // QR
 app.get("/qr/:id", (req, res) => {
   const id = req.params.id;
+app.get("/qr-view/:id", (req, res) => {
+  const id = req.params.id;
 
+  const client = getClient(id) || createClient(id);
+
+  const qr = client.getQR();
+  const status = client.getStatus();
+
+  if (!qr) {
+    return res.send(`
+      <h2>Estado: ${status}</h2>
+      <p>Esperando QR...</p>
+      <script>
+        setTimeout(() => location.reload(), 3000);
+      </script>
+    `);
+  }
+
+  res.send(`
+    <h2>Estado: ${status}</h2>
+    <img src="${qr}" style="width:300px" />
+    <p>Escaneá este QR con WhatsApp</p>
+  `);
+});
   const { createClient, getClient } = require("./whatsapp/client");
 
   let instancia = getClient(id);
@@ -134,3 +157,33 @@ setInterval(() => {
     console.log("Error limpieza demos:", error);
   }
 }, 60000);
+app.get("/qr-view/:id", (req, res) => {
+  const id = req.params.id;
+
+  const { getClient, createClient } = require("./whatsapp/client");
+
+  let client = getClient(id);
+
+  if (!client) {
+    client = createClient(id);
+  }
+
+  const qr = client.getQR();
+  const status = client.getStatus();
+
+  if (!qr) {
+    return res.send(`
+      <h2>Estado: ${status}</h2>
+      <p>Esperando QR...</p>
+      <script>
+        setTimeout(() => location.reload(), 3000);
+      </script>
+    `);
+  }
+
+  res.send(`
+    <h2>Estado: ${status}</h2>
+    <img src="${qr}" style="width:300px" />
+    <p>Escaneá este QR con WhatsApp</p>
+  `);
+});
