@@ -54,7 +54,6 @@ app.post("/instancias", (req, res) => {
     return res.json({ error: "Faltan datos" });
   }
 
-let fechaExpiracion = null;
 
 if (tipo === "demo") {
   const total = db.prepare("SELECT COUNT(*) as count FROM instancias WHERE tipo = 'demo'").get();
@@ -106,3 +105,23 @@ console.log("Demos vencidas eliminadas si existían");
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto " + PORT);
 });
+// eliminar demos vencidas cada 1 minuto
+setInterval(() => {
+  try {
+    const ahora = new Date().toISOString();
+
+    const eliminadas = db.prepare(`
+      DELETE FROM instancias
+      WHERE tipo = 'demo'
+      AND fecha_expiracion IS NOT NULL
+      AND fecha_expiracion < ?
+    `).run(ahora);
+
+    if (eliminadas.changes > 0) {
+      console.log("Instancias demo eliminadas:", eliminadas.changes);
+    }
+
+  } catch (error) {
+    console.log("Error limpieza demos:", error);
+  }
+}, 60000);
