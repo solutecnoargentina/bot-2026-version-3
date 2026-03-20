@@ -37,22 +37,42 @@ font-size:20px;
 <hr>
 
 <h2>Clientes</h2>
-<h3>Crear Cliente</h3>
 
-<input id="nombreCliente" placeholder="Nombre">
-<input id="telefonoCliente" placeholder="Teléfono">
-
-<button onclick="crearCliente()">Crear cliente</button>
-<button onclick="cargarClientes()">Ver clientes</button>
-
-<ul id="listaClientes"></ul>
-
-<div class="status" id="status">Cargando...</div>
-
-<img id="qr" width="250"/>
-
+<div>
+  <h3>Crear Cliente</h3>
+  <input id="nombreCliente" placeholder="Nombre">
+  <input id="telefonoCliente" placeholder="Teléfono">
+  <button onclick="crearCliente()">Crear cliente</button>
 </div>
 
+<br>
+
+<div>
+  <h3>Lista de Clientes</h3>
+  <button onclick="cargarClientes()">Ver clientes</button>
+  <ul id="listaClientes"></ul>
+</div>
+<hr>
+
+<h2>Instancias</h2>
+
+<div>
+  <h3>Crear Instancia</h3>
+  <input id="clienteIdInstancia" placeholder="ID Cliente">
+  <select id="tipoInstancia">
+    <option value="demo">Demo</option>
+    <option value="pago">Pago</option>
+  </select>
+  <button onclick="crearInstancia()">Crear instancia</button>
+</div>
+
+<br>
+
+<div>
+  <h3>Lista de Instancias</h3>
+  <button onclick="cargarInstancias()">Ver instancias</button>
+  <ul id="listaInstancias"></ul>
+</div>
 <script>
 
 async function loadQR(){
@@ -126,6 +146,59 @@ async function crearCliente(){
     alert(data.status || data.error);
 
     cargarClientes();
+
+  }catch(e){
+    console.log(e);
+  }
+}
+
+</script>
+<script>
+
+async function crearInstancia(){
+  const cliente_id = document.getElementById("clienteIdInstancia").value;
+  const tipo = document.getElementById("tipoInstancia").value;
+
+  if(!cliente_id){
+    alert("Falta ID cliente");
+    return;
+  }
+
+  try{
+    const res = await fetch("http://72.60.12.34:3000/instancias", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        cliente_id,
+        tipo
+      })
+    });
+
+    const data = await res.json();
+    alert(data.status || data.error);
+
+    cargarInstancias();
+
+  }catch(e){
+    console.log(e);
+  }
+}
+
+async function cargarInstancias(){
+  try{
+    const res = await fetch("http://72.60.12.34:3000/instancias");
+    const data = await res.json();
+
+    const lista = document.getElementById("listaInstancias");
+    lista.innerHTML = "";
+
+    data.forEach(i => {
+      const li = document.createElement("li");
+      li.innerText = "Cliente " + i.cliente_id + " - " + i.tipo + " - " + i.estado;
+      lista.appendChild(li);
+    });
 
   }catch(e){
     console.log(e);
